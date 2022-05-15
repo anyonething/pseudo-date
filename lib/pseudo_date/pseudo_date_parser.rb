@@ -81,18 +81,20 @@ class PseudoDateParser
       end
     elsif input.length == 8 && is_numeric?(input) # 20080225
       year, month, day = input.slice(0..3), input.slice(4..5), input.slice(6..7)
-    elsif input.match('-') # 1985-09-25 or 02-25-2008
+    elsif input.match('-') # 1985-09-25 or 25-02-2008 or 1985-09
       date_array = input.split('-')
       year = date_array.select{ |part| part.length == 4 }.first
       unless year.nil? || date_array.length != 3
         if date_array.first == year
-          month = date_array.last
-          day = date_array[1]
+          month = date_array[1]
+          day = date_array.last
         else
-          month = date_array.first
-          day = date_array[1]
+          month = date_array[1]
+          day = date_array.first
         end
         month, day = [day, month] if month.to_i > 12 && month.to_i > day.to_i
+      else
+        month = date_array.last
       end
     elsif input.length == 4 # 2004
       year = input.to_s
