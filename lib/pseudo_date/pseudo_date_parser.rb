@@ -1,23 +1,23 @@
 require 'date'
-class Parser
-  
+class PseudoDateParser
+
   AMERICAN_DATE_FORMAT = '%m/%d/%Y'
   EUROPEAN_DATE_FORMAT = '%Y-%m-%d'
-  
+
   def self.parse(input)
     date_hash = {}
     # Minor Pre Cleanup
     input.strip!; input.gsub!('~','')
-    
+
     date = parse_with_poro_date(input)
-    
+
     if date
       date_hash = { :year => date.year.to_s, :month => date.month.to_s, :day => date.day.to_s }
     else
       year, month, day = parse_string(input)
       date_hash = { :year => year, :month => month, :day => day }
     end
-    
+
     # Post parsing cleanup
     date_hash.each do |key, value|
       date_hash[key] = if value.nil?
@@ -26,29 +26,29 @@ class Parser
         date_hash[key] = value.to_s.strip
       end
     end
-    
+
     # Cleanup the single digit values
     unless date_hash.empty?
       date_hash.each do |key,value|
         date_hash[key] = "0#{value}" if value.to_s.length == 1
       end
     end
-    
+
     # Two character years
     if date_hash[:year].length == 2
       date_hash[:year] = date_hash[:year].to_i > Date.today.year.to_s.slice(2..4).to_i ? "19#{date_hash[:year]}" : "20#{date_hash[:year]}"
     end
-    
+
     # Attempt to correct some known OCR issues
     if date_hash[:year].to_s.match('00') && date_hash[:year] != '0000'
       date_hash[:year] = "2#{date_hash[:year].slice(1..3)}"
     end
-    
+
     return date_hash.empty? ? nil : date_hash
   end
-  
+
   private
-  
+
   def self.parse_with_poro_date(string)
     # If our date has 3 parts then let's try to parse it with Date::strptime
     if string.split(/\/|-/).length < 3
@@ -64,7 +64,7 @@ class Parser
   rescue
     nil # We don't actually care why Date is complaining. We'll fall back to slower parsing later.
   end
-  
+
   def self.parse_string(input)
     day, month, year = "00", "00", "0000"
     if input.match('/') # 02/25/2008
@@ -106,5 +106,5 @@ class Parser
     end
     return [year, month, day]
   end
-  
+
 end
